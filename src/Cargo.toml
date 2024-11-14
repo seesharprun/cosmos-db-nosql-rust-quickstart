@@ -1,0 +1,15 @@
+[[bin]]
+name = "app-main"
+path = "app/main.rs"
+
+[package]
+name = "azure-cosmos-db-nosql-rust-quickstart"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+azure_data_cosmos = { git = "https://github.com/Azure/azure-sdk-for-rust.git" }
+azure_identity = { git = "https://github.com/Azure/azure-sdk-for-rust.git" }
+dotenv = "0.15.0"
+serde = { version = "1.0.215", features = ["derive"] }
+tokio = { version = "1", features = ["full"] }

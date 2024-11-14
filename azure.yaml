@@ -1,0 +1,27 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+
+name: cosmos-db-nosql-rust-quickstart
+metadata:
+  template: cosmos-db-nosql-rust-quickstart
+hooks:
+  postprovision:
+    posix:
+      shell: sh
+      interactive: true
+      continueOnError: false
+      run: |
+        echo "
+        CONFIGURATION__AZURECOSMOSDB__ENDPOINT=\"$CONFIGURATION__AZURECOSMOSDB__ENDPOINT\"
+        CONFIGURATION__AZURECOSMOSDB__DATABASENAME=\"$CONFIGURATION__AZURECOSMOSDB__DATABASENAME\"
+        CONFIGURATION__AZURECOSMOSDB__CONTAINERNAME=\"$CONFIGURATION__AZURECOSMOSDB__CONTAINERNAME\"
+        " > ./src/.env
+    windows:
+      shell: pwsh
+      interactive: true
+      continueOnError: false
+      run: |
+        echo "
+        CONFIGURATION__AZURECOSMOSDB__ENDPOINT=""$env:CONFIGURATION__AZURECOSMOSDB__ENDPOINT""
+        CONFIGURATION__AZURECOSMOSDB__DATABASENAME=""$env:CONFIGURATION__AZURECOSMOSDB__DATABASENAME""
+        CONFIGURATION__AZURECOSMOSDB__CONTAINERNAME=""$env:CONFIGURATION__AZURECOSMOSDB__CONTAINERNAME""
+        " > ./src/.env
