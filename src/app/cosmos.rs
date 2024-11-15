@@ -26,10 +26,10 @@ where
     };
     callback("Client created".to_string());
 
-    let database = client.database(&database_name);
+    let database = client.database_client(&database_name);
     callback(format!("Get database:\t {}", database_name));
 
-    let container = database.container(&container_name);
+    let container = database.container_client(&container_name);
     callback(format!("Get container:\t {}", container_name));
 
     {
