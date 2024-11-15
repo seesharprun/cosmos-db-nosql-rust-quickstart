@@ -1,6 +1,6 @@
 use futures::StreamExt;
 use serde_json;
-use azure_data_cosmos::{CosmosClient, CosmosClientOptions, PartitionKey};
+use azure_data_cosmos::{CosmosClient, PartitionKey};
 use azure_identity::DefaultAzureCredential;
 use crate::item::Item;
 
@@ -17,10 +17,7 @@ where
 
     let credential = DefaultAzureCredential::new().unwrap();
 
-    let client_options = CosmosClientOptions::default();
-    let client_options = Some(client_options);
-
-    let service_client = match CosmosClient::new(&endpoint, credential, client_options) {
+    let client = match CosmosClient::new(&endpoint, credential, None) {
         Ok(client) => client,
         Err(e) => {
             eprintln!("Error creating CosmosClient: {}", e);
@@ -29,10 +26,10 @@ where
     };
     callback("Client created".to_string());
 
-    let database_client = service_client.database_client(&database_name);
+    let database = client.database(&database_name);
     callback(format!("Get database:\t {}", database_name));
 
-    let container_client = database_client.container_client(&container_name);
+    let container = database.container(&container_name);
     callback(format!("Get container:\t {}", container_name));
 
     {
@@ -47,7 +44,7 @@ where
 
         let partition_key = PartitionKey::from(item.category.clone());
 
-        let upsert_response = container_client.upsert_item(partition_key, item, None).await;
+        let upsert_response = container.upsert_item(partition_key, item, None).await;
 
         match upsert_response {
             Ok(r) => {
@@ -80,7 +77,7 @@ where
 
         let partition_key = PartitionKey::from(item.category.clone());
 
-        let upsert_response = container_client.upsert_item(partition_key, item, None).await;
+        let upsert_response = container.upsert_item(partition_key, item, None).await;
 
         match upsert_response {
             Ok(r) => {
@@ -105,7 +102,7 @@ where
         let item_id = "aaaaaaaa-0000-1111-2222-bbbbbbbbbbbb";
         let item_partition_key = "gear-surf-surfboards";
 
-        let read_response = container_client.read_item::<Item>(item_partition_key, item_id, None).await;
+        let read_response = container.read_item::<Item>(item_partition_key, item_id, None).await;
 
         match read_response {
             Ok(r) => {
@@ -133,7 +130,7 @@ where
 
         let query = format!("SELECT * FROM c WHERE c.category = '{}'", item_partition_key);
 
-        let page_response = container_client.query_items::<Item>(&query, partition_key, None);
+        let page_response = container.query_items::<Item>(&query, partition_key, None);
         
         callback("Run query:".to_string());
         match page_response {
