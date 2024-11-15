@@ -1,174 +1,61 @@
-use serde::{Deserialize, Serialize};
-use futures::StreamExt;
-
 use dotenv;
+use socketioxide::SocketIo;
+use socketioxide::extract::SocketRef;
+use std::net::SocketAddr;
+use tokio::net::TcpListener;
+use tower::ServiceBuilder;
+use tower_http::cors::CorsLayer;
+use tower_http::services::ServeDir;
 
-use azure_data_cosmos::{CosmosClient, CosmosClientOptions, PartitionKey};
-use azure_identity::DefaultAzureCredential;
-
-#[derive(Serialize, Deserialize, Debug)]
-struct Item {
-    id: String,
-    category: String,
-    name: String,
-    quantity: i32,
-    price: f64,
-    clearance: bool,
-}
+mod item;
+mod cosmos;
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::dotenv().ok();
 
-    let credential = DefaultAzureCredential::new().unwrap();
+    let (layer, io) = SocketIo::new_layer();
 
-    let endpoint = std::env::var("CONFIGURATION__AZURECOSMOSDB__ENDPOINT").expect("Missing CONFIGURATION__AZURECOSMOSDB__ENDPOINT environment variable.");
-
-    let client_options = CosmosClientOptions::default();
-    let client_options = Some(client_options);
-
-    let service_client = match CosmosClient::new(&endpoint, credential, client_options) {
-        Ok(client) => client,
-        Err(e) => {
-            eprintln!("Error creating CosmosClient: {}", e);
-            return;
-        }
-    };
-
-    let database_name = std::env::var("CONFIGURATION__AZURECOSMOSDB__DATABASENAME").expect("Missing CONFIGURATION__AZURECOSMOSDB__DATABASENAME environment variable.");
-
-    let database_client = service_client.database_client(&database_name);
-
-    let container_name = std::env::var("CONFIGURATION__AZURECOSMOSDB__CONTAINERNAME").expect("Missing CONFIGURATION__AZURECOSMOSDB__CONTAINERNAME environment variable.");
-
-    let container_client = database_client.container_client(&container_name);
-
-    {
-        let item = Item {
-            id: "aaaaaaaa-0000-1111-2222-bbbbbbbbbbbb".to_string(),
-            category: "gear-surf-surfboards".to_string(),
-            name: "Yamba Surfboard".to_string(),
-            quantity: 12,
-            price: 850.00,
-            clearance: false,
-        };
-
-        let partition_key = PartitionKey::from(item.category.clone());
-
-        let upsert_response = container_client.upsert_item(partition_key, item, None).await;
-
-        match upsert_response {
-            Ok(r) => {
-                let deserialize_response = r.deserialize_body().await;
-                match deserialize_response {
-                    Ok(i) => {
-                        let upserted_item = i.unwrap();
-                        println!("Upserted item: {:?}", upserted_item);
-                    },
+    io.ns("/", |socket: SocketRef| {        
+        println!("Socket connected: {:?}", socket.id);
+        socket.on("start", move |socket: SocketRef| {
+            let handle_message = move |message: String| {                        
+                match socket.emit("new_message", &message) {
+                    Ok(_) => {
+                        println!("{}", message);
+                    }
                     Err(e) => {
-                        eprintln!("Error deserializing response: {}", e);
-                    },
-                }
-            },
-            Err(e) => {
-                eprintln!("Error upserting item: {}", e);
-            },
-        }
-    }
-    
-    {
-        let item = Item {
-            id: "bbbbbbbb-1111-2222-3333-cccccccccccc".to_string(),
-            category: "gear-surf-surfboards".to_string(),
-            name: "Kiama Classic Surfboard".to_string(),
-            quantity: 25,
-            price: 790.00,
-            clearance: true,
-        };
-
-        let partition_key = PartitionKey::from(item.category.clone());
-
-        let upsert_response = container_client.upsert_item(partition_key, item, None).await;
-
-        match upsert_response {
-            Ok(r) => {
-                let deserialize_response = r.deserialize_body().await;
-                match deserialize_response {
-                    Ok(i) => {
-                        let upserted_item = i.unwrap();
-                        println!("Upserted item: {:?}", upserted_item);
-                    },
-                    Err(e) => {
-                        eprintln!("Error deserializing response: {}", e);
-                    },
-                }
-            },
-            Err(e) => {
-                eprintln!("Error upserting item: {}", e);
-            },
-        }
-    }
-
-    {
-        let item_id = "aaaaaaaa-0000-1111-2222-bbbbbbbbbbbb";
-        let item_partition_key = "gear-surf-surfboards";
-
-        let read_response = container_client.read_item::<Item>(item_partition_key, item_id, None).await;
-
-        match read_response {
-            Ok(r) => {
-                let deserialize_response = r.deserialize_body().await;
-                match deserialize_response {
-                    Ok(i) => {
-                        let read_item = i.unwrap();
-                        println!("Read item: {:?}", read_item);
-                    },
-                    Err(e) => {
-                        eprintln!("Error deserializing response: {}", e);
-                    },
-                }
-            },
-            Err(e) => {
-                eprintln!("Error reading item: {}", e);
-            },
-        }
-    }
-
-    {
-        let item_partition_key = "gear-surf-surfboards";
-
-        let partition_key = PartitionKey::from(item_partition_key);
-
-        let query = format!("SELECT * FROM c WHERE c.category = '{}'", item_partition_key);
-
-        let page_response = container_client.query_items::<Item>(&query, partition_key, None);
-
-        match page_response {
-            Ok(mut page) => {
-                while let Some(item) = page.next().await {
-                    match item {
-                        Ok(i) => {
-                            let deserialize_response = i.deserialize_body().await;
-                            match deserialize_response {
-                                Ok(page) => {
-                                    for item in page.items {
-                                        println!("Queried item: {:?}", item);
-                                    }
-                                },
-                                Err(e) => {
-                                    eprintln!("Error deserializing item: {}", e);
-                                },
-                            }
-                        },
-                        Err(e) => {
-                            eprintln!("Error querying item: {}", e);
-                        },
+                        println!("Failed to emit new message: {:?}", e);
                     }
                 }
-            },
-            Err(e) => {
-                eprintln!("Error querying items: {}", e);
-            },
-        }
-    }
+            };
+
+            tokio::spawn(async move {
+                cosmos::run(
+                    std::env::var("CONFIGURATION__AZURECOSMOSDB__ENDPOINT").expect("Missing CONFIGURATION__AZURECOSMOSDB__ENDPOINT environment variable."),
+                    std::env::var("CONFIGURATION__AZURECOSMOSDB__DATABASENAME").expect("Missing CONFIGURATION__AZURECOSMOSDB__DATABASENAME environment variable."),
+                    std::env::var("CONFIGURATION__AZURECOSMOSDB__CONTAINERNAME").expect("Missing CONFIGURATION__AZURECOSMOSDB__CONTAINERNAME environment variable."),
+                    handle_message,
+                ).await;
+            });
+        });
+    });
+
+    let app = axum::Router::new()
+        .nest_service("/", ServeDir::new("static"))
+        .layer(
+            ServiceBuilder::new()
+                .layer(CorsLayer::permissive())
+                .layer(layer),
+        );
+
+    let address = "0.0.0.0:3030".parse::<SocketAddr>().unwrap();
+
+    let listener = TcpListener::bind(address).await.unwrap();
+
+    println!("Listening on {}", address);
+
+    axum::serve(listener, app).await.unwrap();
+
+    Ok(())
 }
