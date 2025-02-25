@@ -16,11 +16,14 @@ products:
 
 This is a simple web application to illustrate common basic usage of Azure Cosmos DB for NoSQL with the Azure SDK for Rust.
 
+> [!IMPORTANT]
+> Local development is not supported in this template.
+
 ## Prerequisites
 
 - [Docker](https://www.docker.com/)
 - [Azure Developer CLI](https://aka.ms/azd-install)
-- [Rust 1+](https://go.dev/dl/)
+- [Rust 1.80 or later](https://go.dev/dl/)
 
 ## Quickstart
 
