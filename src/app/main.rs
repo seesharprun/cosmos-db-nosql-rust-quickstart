@@ -31,12 +31,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             };
 
             tokio::spawn(async move {
-                cosmos::run(
+                match cosmos::run(
                     std::env::var("CONFIGURATION__AZURECOSMOSDB__ENDPOINT").expect("Missing CONFIGURATION__AZURECOSMOSDB__ENDPOINT environment variable."),
                     std::env::var("CONFIGURATION__AZURECOSMOSDB__DATABASENAME").expect("Missing CONFIGURATION__AZURECOSMOSDB__DATABASENAME environment variable."),
                     std::env::var("CONFIGURATION__AZURECOSMOSDB__CONTAINERNAME").expect("Missing CONFIGURATION__AZURECOSMOSDB__CONTAINERNAME environment variable."),
                     handle_message,
-                ).await;
+                ).await {
+                    Ok(_) => (),
+                    Err(e) => println!("Error running Azure Cosmos DB for NoSQL script: {:?}", e),
+                }
             });
         });
     });
