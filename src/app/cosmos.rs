@@ -15,6 +15,7 @@ where
 {
     callback("Current Status:\tStarting...".to_string());
 
+    // <create_client>
     let credential = DefaultAzureCredential::new().unwrap();
 
     let client = match CosmosClient::new(&endpoint, credential, None) {
@@ -24,6 +25,8 @@ where
             return;
         }
     };
+    // </create_client>
+
     callback("Client created".to_string());
 
     let database = client.database_client(&database_name);
