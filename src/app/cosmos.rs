@@ -41,15 +41,7 @@ where
         
         let partition_key = PartitionKey::from(item.category.clone());
         
-        callback("Started".to_string());
-
-        let response = container.upsert_item(partition_key, item, None).await?;
-
-        callback("Done".to_string());
-
-        let item: Item = response.into_json_body().await?;
-        
-        callback("Parsed".to_string());
+        container.upsert_item(partition_key, item.clone(), None).await?;
 
         callback(format!("Upserted item:\t{}", item.id));
     }
@@ -66,9 +58,7 @@ where
 
         let partition_key = PartitionKey::from(item.category.clone());
 
-        let response = container.upsert_item(partition_key, item, None).await?;
-
-        let item: Item = response.into_json_body().await?;
+        container.upsert_item(partition_key, item.clone(), None).await?;
 
         callback(format!("Upserted item:\t{}", item.id));
     }

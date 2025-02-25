@@ -7,7 +7,7 @@ name = "azure-cosmos-db-nosql-rust-quickstart"
 edition = "2021"
 
 [dependencies]
-axum = "0.8.1"
+axum = "0.7.7"
 azure_data_cosmos = { git = "https://github.com/Azure/azure-sdk-for-rust.git", package = "azure_data_cosmos" } 
 azure_identity = { git = "https://github.com/Azure/azure-sdk-for-rust.git", package = "azure_identity" } 
 dotenv = "0.15.0"
