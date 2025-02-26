@@ -1,8 +1,8 @@
 use serde_json;
 use azure_data_cosmos::{CosmosClient, PartitionKey, Query};
 use azure_identity::DefaultAzureCredential;
-use crate::item::Item;
 use futures::stream::StreamExt;
+use crate::item::Item;
 
 pub async fn run<F>(
     endpoint: String,
