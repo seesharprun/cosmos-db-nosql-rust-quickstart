@@ -1,6 +1,6 @@
 use serde_json;
 use azure_data_cosmos::{CosmosClient, PartitionKey, Query};
-use azure_identity::DefaultAzureCredential;
+use azure_identity::ManagedIdentityCredential;
 use futures::stream::StreamExt;
 use crate::item::Item;
 
@@ -16,7 +16,7 @@ where
     callback("Current Status:\tStarting...".to_string());
 
     // <create_client>
-    let credential = DefaultAzureCredential::new()?;
+    let credential = ManagedIdentityCredential::new()?;
 
     let client = CosmosClient::new(&endpoint, credential, None)?;
     // </create_client>
