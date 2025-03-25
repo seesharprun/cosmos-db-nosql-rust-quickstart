@@ -17,10 +17,7 @@ products:
 This is a simple web application to illustrate common basic usage of Azure Cosmos DB for NoSQL with the Azure SDK for Rust.
 
 > [!IMPORTANT]
-> Local development is the only supported loop in this template.
->
-> Azure SDK for Rust does not have support for user-assigned managed identity in Azure yet.
->
+> Cloud development is the only supported loop in this template.
 
 ## Prerequisites
 
