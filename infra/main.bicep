@@ -184,6 +184,10 @@ module containerAppsApp 'br/public:avm/res/app/container-app:0.9.0' = {
         }
         env: [
           {
+            name: 'ASPNETCORE_HTTP_PORTS'
+            value: '3030'
+          }
+          {
             name: 'CONFIGURATION__AZURECOSMOSDB__ENDPOINT'
             secretRef: 'azure-cosmos-db-nosql-endpoint'
           }

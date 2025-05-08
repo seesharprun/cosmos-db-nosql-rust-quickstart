@@ -18,7 +18,7 @@ where
     // <create_client>
     let credential = DefaultAzureCredential::new()?;
 
-    let client = CosmosClient::new(&endpoint, credential, None)?;
+    let client = CosmosClient::new(&endpoint, credential.clone(), None)?;
     // </create_client>
 
     callback("Client created".to_string());
@@ -84,9 +84,9 @@ where
         
         callback("Run query:".to_string());
 
-        while let Some(page_response) = pager.next().await {
-            let page = page_response?.into_body().await?;
-            for item in page.items {
+        while let Some(page) = pager.next().await {
+            let items: Vec<Item> = page?.into_items();
+            for item in items {
                 callback(serde_json::to_string_pretty(&item).unwrap());
             }
         }
