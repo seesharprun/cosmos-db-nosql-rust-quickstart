@@ -176,7 +176,7 @@ module containerAppsApp 'br/public:avm/res/app/container-app:0.9.0' = {
     }
     containers: [
       {
-        image: 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'
+        image: 'mcr.microsoft.com/dotnet/samples:aspnetapp-9.0'
         name: 'web-front-end'
         resources: {
           cpu: '0.25'
