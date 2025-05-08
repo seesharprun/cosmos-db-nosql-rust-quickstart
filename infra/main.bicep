@@ -205,7 +205,7 @@ module containerAppsApp 'br/public:avm/res/app/container-app:0.9.0' = {
   }
 }
 
-// Azure Cosmos DB for Table outputs
+// Azure Cosmos DB for NoSQL outputs
 output CONFIGURATION__AZURECOSMOSDB__ENDPOINT string = cosmosDbAccount.outputs.endpoint
 output CONFIGURATION__AZURECOSMOSDB__DATABASENAME string = databaseName
 output CONFIGURATION__AZURECOSMOSDB__CONTAINERNAME string = containerName
